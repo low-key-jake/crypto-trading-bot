@@ -5,7 +5,7 @@ def plot_trading_chart(df, trades):
 
     plt.figure(figsize=(14, 7))
 
-    # BTC price
+    # BTC Price
     plt.plot(
         df["Open Time"],
         df["Close"],
@@ -19,45 +19,56 @@ def plot_trading_chart(df, trades):
         label="SMA 20"
     )
 
-    # Plot BUY and SELL points
+    # BUY and SELL points
+    buy_label_added = False
+    sell_label_added = False
+
     for trade in trades:
 
         if trade["type"] == "BUY":
 
-            plt.scatter(
-                trade["time"],
-                trade["price"],
-                marker="^",
-                s=100,
-                label="BUY"
-            )
+            if not buy_label_added:
+                plt.scatter(
+                    trade["time"],
+                    trade["price"],
+                    marker="^",
+                    s=100,
+                    label="BUY"
+                )
+                buy_label_added = True
+            else:
+                plt.scatter(
+                    trade["time"],
+                    trade["price"],
+                    marker="^",
+                    s=100
+                )
 
         elif trade["type"] == "SELL":
 
-            plt.scatter(
-                trade["time"],
-                trade["price"],
-                marker="v",
-                s=100,
-                label="SELL"
-            )
+            if not sell_label_added:
+                plt.scatter(
+                    trade["time"],
+                    trade["price"],
+                    marker="v",
+                    s=100,
+                    label="SELL"
+                )
+                sell_label_added = True
+            else:
+                plt.scatter(
+                    trade["time"],
+                    trade["price"],
+                    marker="v",
+                    s=100
+                )
 
     plt.xlabel("Time")
     plt.ylabel("BTC Price")
 
-    plt.title(
-        "BTC/USDT Trading Strategy Backtest"
-    )
+    plt.title("BTC/USDT Trading Strategy Backtest")
 
-    # Remove duplicate legend entries
-    handles, labels = plt.gca().get_legend_handles_labels()
-
-    unique = dict(zip(labels, handles))
-
-    plt.legend(
-        unique.values(),
-        unique.keys()
-    )
+    plt.legend()
 
     plt.grid(True)
 
@@ -65,4 +76,14 @@ def plot_trading_chart(df, trades):
 
     plt.tight_layout()
 
-    plt.show()
+    # Save graph
+    plt.savefig(
+        "trading_chart.png",
+        dpi=150,
+        bbox_inches="tight"
+    )
+
+    plt.close()
+
+    print("\nTrading chart saved successfully!")
+
