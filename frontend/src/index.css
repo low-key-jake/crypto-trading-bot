@@ -55,25 +55,24 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Satosphere Premium Title */
+/* Satosphere Dreamcore Celestial Title */
 .satosphere-title {
   font-family: 'Cinzel Decorative', serif;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.16em;
   background: linear-gradient(
     175deg,
     #ffffff 0%,
-    #fff8ee 18%,
-    #f0d9a8 40%,
-    #d4a853 62%,
-    #c49a3c 78%,
-    #a87d2a 100%
+    #e0f2fe 22%,
+    #fef3c7 50%,
+    #f59e0b 78%,
+    #b45309 100%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 2px 12px rgba(212, 168, 83, 0.4))
-         drop-shadow(0 0 40px rgba(212, 168, 83, 0.15));
+  filter: drop-shadow(0 0 24px rgba(186, 230, 253, 0.5))
+         drop-shadow(0 4px 36px rgba(245, 158, 11, 0.35));
   text-shadow: none;
 }
 

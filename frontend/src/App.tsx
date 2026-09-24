@@ -51,14 +51,14 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Compute scroll camera progress (0 to 1 over the hero pinned stage)
-  const heroZoomProgress = Math.min(1, Math.max(0, scrollY / 650));
-  // Reveal the locked Bitcoin man background as camera reaches laptop screen
-  const secondBgOpacity = Math.min(1, Math.max(0, (scrollY - 200) / 400));
+  // Compute scroll camera progress (0 to 1 over the 5-frame hero zoom)
+  const heroZoomProgress = Math.min(1, Math.max(0, scrollY / 850));
+  // Reveal the locked Bitcoin man background as camera dives into laptop screen
+  const secondBgOpacity = Math.min(1, Math.max(0, (scrollY - 450) / 400));
 
-  // Slide-in effect for the "Should You Buy?" DecisionCard
-  const decisionSlideProgress = Math.min(1, Math.max(0, (scrollY - 400) / 300));
-  const decisionTransformX = (1 - decisionSlideProgress) * 80;
+  // Slide-in effect for the "Should You Buy?" DecisionCard as user scrolls past laptop screen dive
+  const decisionSlideProgress = Math.min(1, Math.max(0, (scrollY - 650) / 350));
+  const decisionTransformX = (1 - decisionSlideProgress) * 120;
   const decisionOpacity = decisionSlideProgress;
 
   // Load all telemetry
@@ -117,7 +117,7 @@ export const App: React.FC = () => {
 
   const scrollToTerminal = () => {
     window.scrollTo({
-      top: 750,
+      top: 1000,
       behavior: 'smooth'
     });
   };
@@ -139,11 +139,11 @@ export const App: React.FC = () => {
       {/* Locked Atmospheric Background for the rest of website (Bitcoin man with moving chart in sky & fireflies) */}
       <BitcoinManBackground opacity={secondBgOpacity} />
 
-      {/* 1. CINEMATIC PINNED CAMERA SEQUENCE (150vh scroll track) */}
-      <div className="relative w-full h-[150vh]">
+      {/* 1. CINEMATIC PINNED CAMERA SEQUENCE (180vh scroll track for 5-frame zoom) */}
+      <div className="relative w-full h-[180vh]">
         <div 
           className="sticky top-0 w-full h-screen overflow-hidden z-20"
-          style={{ pointerEvents: heroZoomProgress > 0.9 ? 'none' : 'auto' }}
+          style={{ pointerEvents: heroZoomProgress > 0.95 ? 'none' : 'auto' }}
         >
           <HeroSection 
             onScrollToTerminal={scrollToTerminal}

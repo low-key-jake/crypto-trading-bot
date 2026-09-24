@@ -5,7 +5,7 @@ interface HeroSectionProps {
   onScrollToTerminal: () => void;
   onOpenNews: () => void;
   onOpenLiveChart: () => void;
-  scrollProgress: number; // 0 to 1 — driven by scroll position over a spacer div
+  scrollProgress: number; // 0 to 1 — driven by scroll position
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -14,129 +14,213 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onOpenLiveChart,
   scrollProgress
 }) => {
-  // ── Phase 1 (progress 0→0.55): Video zooms towards laptop screen, text fades ──
-  // ── Phase 2 (progress 0.55→1.0): Video fades out, Bitcoin man bg shows through ──
+  // Calculate opacities & scale transforms for the 5 frame milestones
+  // Frame 1: Wide shot (0.0 to 0.3)
+  const f1Opacity = scrollProgress < 0.25 ? 1 : Math.max(0, 1 - (scrollProgress - 0.25) / 0.15);
+  const f1Scale = 1 + scrollProgress * 0.5;
 
-  // Zoom: starts at 1x, reaches ~2.4x at full progress
-  // transform-origin is set to where the laptop screen sits in the video (~50% X, ~76% Y)
-  const zoomScale = 1 + scrollProgress * 1.4;
+  // Frame 2: Over shoulder (0.15 to 0.55)
+  const f2Opacity = scrollProgress < 0.15 
+    ? 0 
+    : scrollProgress < 0.35 
+    ? (scrollProgress - 0.15) / 0.2 
+    : scrollProgress < 0.45 
+    ? 1 
+    : Math.max(0, 1 - (scrollProgress - 0.45) / 0.15);
+  const f2Scale = 1 + (scrollProgress - 0.15) * 0.6;
 
-  // Text fades out quickly in the first 35% of scroll
-  const textOpacity = Math.max(0, 1 - scrollProgress * 2.8);
-  const textBlur = scrollProgress * 8;
+  // Frame 3: Laptop screen bezel close up (0.35 to 0.75)
+  const f3Opacity = scrollProgress < 0.35 
+    ? 0 
+    : scrollProgress < 0.52 
+    ? (scrollProgress - 0.35) / 0.17 
+    : scrollProgress < 0.65 
+    ? 1 
+    : Math.max(0, 1 - (scrollProgress - 0.65) / 0.15);
+  const f3Scale = 1 + (scrollProgress - 0.35) * 0.7;
 
-  // Video fades out during phase 2 (progress 0.55 → 1.0), revealing BitcoinManBackground behind
-  const videoOpacity = scrollProgress < 0.55
-    ? 1
-    : Math.max(0, 1 - ((scrollProgress - 0.55) / 0.45));
+  // Frame 4: Screen displaying Bitcoin man inside bezel (0.55 to 0.92)
+  const f4Opacity = scrollProgress < 0.55 
+    ? 0 
+    : scrollProgress < 0.72 
+    ? (scrollProgress - 0.55) / 0.17 
+    : scrollProgress < 0.82 
+    ? 1 
+    : Math.max(0, 1 - (scrollProgress - 0.82) / 0.15);
+  const f4Scale = 1 + (scrollProgress - 0.55) * 0.8;
 
-  // Shooting stars + nav fade with the hero
-  const uiOpacity = Math.max(0, 1 - scrollProgress * 1.8);
+  // Frame 5: Full Bitcoin man world expansion (0.75 to 1.0)
+  const f5Opacity = scrollProgress < 0.75 ? 0 : Math.min(1, (scrollProgress - 0.75) / 0.2);
+
+  // Text & Navbar UI fade out in the first 30% of scroll
+  const textOpacity = Math.max(0, 1 - scrollProgress * 3.2);
+  const textBlur = scrollProgress * 10;
+  const uiOpacity = Math.max(0, 1 - scrollProgress * 2.5);
 
   return (
-    <div className="relative w-full h-full min-h-screen flex flex-col justify-between overflow-hidden">
-      {/* ─── Video Background with Zoom Transform ─── */}
-      <div
-        className="absolute inset-0 w-full h-full will-change-transform"
-        style={{
-          transformOrigin: '50% 76%',
-          transform: `scale(${zoomScale})`,
-          opacity: videoOpacity,
-          transition: 'opacity 0.05s linear',
-        }}
-      >
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover brightness-[0.82]"
-          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4"
-        />
-        {/* Night tint overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#070d1a]/50 via-transparent to-[#070d1a]/60 pointer-events-none" />
+    <div className="relative w-full h-full min-h-screen flex flex-col justify-between overflow-hidden bg-[#040a17]">
+      {/* ─── 5-FRAME ZOOM STACK ─── */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
+        {/* Frame 1: Wide Shot */}
+        <div
+          className="absolute inset-0 w-full h-full will-change-transform transition-opacity duration-75"
+          style={{
+            opacity: f1Opacity,
+            transform: `scale(${f1Scale})`,
+            transformOrigin: '50% 65%'
+          }}
+        >
+          <img
+            src="/frame1.png"
+            alt="Satosphere Dreamcore Field"
+            className="w-full h-full object-cover brightness-[0.9] contrast-[1.05]"
+          />
+        </div>
+
+        {/* Frame 2: Over Shoulder */}
+        <div
+          className="absolute inset-0 w-full h-full will-change-transform transition-opacity duration-75"
+          style={{
+            opacity: f2Opacity,
+            transform: `scale(${Math.max(1, f2Scale)})`,
+            transformOrigin: '50% 70%'
+          }}
+        >
+          <img
+            src="/frame2.png"
+            alt="Over Shoulder Zoom"
+            className="w-full h-full object-cover brightness-[0.92]"
+          />
+        </div>
+
+        {/* Frame 3: Laptop Screen Bezel Close-up */}
+        <div
+          className="absolute inset-0 w-full h-full will-change-transform transition-opacity duration-75"
+          style={{
+            opacity: f3Opacity,
+            transform: `scale(${Math.max(1, f3Scale)})`,
+            transformOrigin: '48% 68%'
+          }}
+        >
+          <img
+            src="/frame3.png"
+            alt="Laptop Bezel Zoom"
+            className="w-full h-full object-cover brightness-[0.95]"
+          />
+        </div>
+
+        {/* Frame 4: Displaying Bitcoin Man Inside Screen */}
+        <div
+          className="absolute inset-0 w-full h-full will-change-transform transition-opacity duration-75"
+          style={{
+            opacity: f4Opacity,
+            transform: `scale(${Math.max(1, f4Scale)})`,
+            transformOrigin: '50% 50%'
+          }}
+        >
+          <img
+            src="/frame4.png"
+            alt="Bitcoin Man Screen Display"
+            className="w-full h-full object-cover brightness-[0.98]"
+          />
+        </div>
+
+        {/* Frame 5: Full Bitcoin Man World Expansion */}
+        <div
+          className="absolute inset-0 w-full h-full will-change-transform transition-opacity duration-75"
+          style={{ opacity: f5Opacity }}
+        >
+          <img
+            src="/frame5.png"
+            alt="Satosphere Bitcoin World"
+            className="w-full h-full object-cover brightness-[0.95]"
+          />
+        </div>
+
+        {/* Ambient Dreamcore Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#040a17]/40 via-transparent to-[#040a17]/70 pointer-events-none" />
       </div>
 
       {/* ─── Shooting Stars ─── */}
-      <div style={{ opacity: uiOpacity }} className="pointer-events-none">
+      <div style={{ opacity: uiOpacity }} className="pointer-events-none z-10">
         <div className="shooting-star-1" />
         <div className="shooting-star-2" />
         <div className="shooting-star-3" />
       </div>
 
-      {/* ─── Navbar ─── */}
+      {/* ─── Floating Header Nav ─── */}
       <header
-        className="absolute top-0 left-0 right-0 z-30 w-full px-6 py-6 max-w-7xl mx-auto flex items-center justify-center"
+        className="absolute top-0 left-0 right-0 z-30 w-full px-6 py-6 max-w-7xl mx-auto flex items-center justify-center transition-opacity duration-150"
         style={{ opacity: uiOpacity }}
       >
-        <nav className="flex items-center gap-2 sm:gap-4 px-4 py-2 rounded-full bg-white/[0.07] backdrop-blur-xl border border-white/[0.12] text-sm font-medium shadow-lg">
+        <nav className="flex items-center gap-2 sm:gap-4 px-4 py-2 rounded-full bg-white/[0.08] backdrop-blur-xl border border-white/[0.15] text-sm font-medium shadow-2xl">
           <a
             href="#hero"
             data-cursor="Home"
-            className="px-5 py-1.5 rounded-full bg-white/90 text-[#1a1a2e] font-semibold shadow-sm transition-all"
+            className="px-5 py-1.5 rounded-full bg-white/90 text-[#09152b] font-semibold shadow-md transition-all"
           >
             Home
           </a>
           <button
             onClick={onOpenLiveChart}
             data-cursor="Live Chart"
-            className="px-4 py-1.5 rounded-full text-white/70 hover:text-white hover:bg-white/[0.08] flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-4 py-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/[0.1] flex items-center gap-1.5 transition-all cursor-pointer"
           >
-            <LineChart className="w-3.5 h-3.5 text-amber-200/70" />
+            <LineChart className="w-3.5 h-3.5 text-amber-200/90" />
             <span>Live Chart</span>
           </button>
           <button
             onClick={onOpenNews}
             data-cursor="News"
-            className="px-4 py-1.5 rounded-full text-white/70 hover:text-white hover:bg-white/[0.08] flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-4 py-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/[0.1] flex items-center gap-1.5 transition-all cursor-pointer"
           >
-            <Newspaper className="w-3.5 h-3.5 text-white/50" />
+            <Newspaper className="w-3.5 h-3.5 text-sky-200/80" />
             <span>News</span>
           </button>
         </nav>
       </header>
 
-      {/* ─── Central "Satosphere" Title + Tagline ─── */}
+      {/* ─── Main Hero Branding & Quotation ─── */}
       <div
         className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 pointer-events-none"
         style={{
           opacity: textOpacity,
           filter: `blur(${textBlur}px)`,
-          transform: `translateY(${-scrollProgress * 40}px)`,
+          transform: `translateY(${-scrollProgress * 50}px)`,
         }}
       >
-        <span className="satosphere-title text-7xl sm:text-8xl md:text-[10rem] leading-none select-none py-2">
+        <span className="satosphere-title text-7xl sm:text-8xl md:text-[10rem] leading-none select-none py-2 drop-shadow-2xl">
           Satosphere
         </span>
-        <span className="text-xs sm:text-sm font-mono tracking-[0.25em] text-white/40 uppercase mt-4 drop-shadow-md">
+        <span className="text-xs sm:text-sm font-mono tracking-[0.28em] text-sky-100/60 uppercase mt-4 drop-shadow-lg">
           Bitcoin Neural Intelligence & Quantitative Arbiter
         </span>
 
         {/* H1 Heading */}
         <h1
-          className="text-4xl sm:text-6xl md:text-7xl leading-[0.95] tracking-[-2px] max-w-5xl font-normal text-white/90 mt-12"
+          className="text-4xl sm:text-6xl md:text-7xl leading-[0.95] tracking-[-2px] max-w-5xl font-normal text-white/95 mt-10 drop-shadow-md"
           style={{ fontFamily: "'Instrument Serif', serif" }}
         >
-          Where intelligence <em className="not-italic text-white/35">rises</em> through the silence.
+          Where intelligence <em className="not-italic text-white/40">rises</em> through the silence.
         </h1>
-        <p className="text-white/45 text-base sm:text-lg max-w-2xl mt-8 leading-relaxed">
+        <p className="text-white/55 text-base sm:text-lg max-w-2xl mt-8 leading-relaxed">
           Dual-engine machine learning and multi-factor quantitative strategies —
           definitive buy and sell precision for Bitcoin.
         </p>
       </div>
 
-      {/* ─── Bottom Scroll Prompt ─── */}
+      {/* ─── Scroll Prompt ─── */}
       <div
-        className="absolute bottom-8 left-0 right-0 z-20 flex flex-col items-center"
+        className="absolute bottom-8 left-0 right-0 z-20 flex flex-col items-center pointer-events-auto"
         style={{ opacity: textOpacity }}
       >
         <button
           onClick={onScrollToTerminal}
           data-cursor="Scroll Down"
-          className="text-xs uppercase tracking-widest text-white/40 hover:text-white/70 flex flex-col items-center gap-2 cursor-pointer transition-colors"
+          className="text-xs uppercase tracking-widest text-white/50 hover:text-white flex flex-col items-center gap-2 cursor-pointer transition-colors"
         >
-          <span>Scroll to explore</span>
-          <ArrowDown className="w-4 h-4 animate-bounce text-white/30" />
+          <span>Scroll to Dive into Terminal</span>
+          <ArrowDown className="w-4 h-4 animate-bounce text-amber-200/70" />
         </button>
       </div>
     </div>
