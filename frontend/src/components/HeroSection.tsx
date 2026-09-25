@@ -1,12 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ArrowDown, Newspaper, LineChart } from 'lucide-react';
 
 interface HeroSectionProps {
   onScrollToTerminal: () => void;
   onOpenNews: () => void;
   onOpenLiveChart: () => void;
-  scrollProgress: number; // 0 to 1 — driven by page scroll position
+  scrollProgress: number; // 0 to 1 — driven by scroll position over the 250vh pinned track
 }
+
+const TOTAL_FRAMES = 40;
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onScrollToTerminal,
@@ -14,66 +16,89 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onOpenLiveChart,
   scrollProgress
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [duration, setDuration] = useState<number>(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
 
-  // Sync video.currentTime with user's scrollProgress (0 to 1)
+  // Preload all 40 extracted high-res frames for 60fps flicker-free canvas scrubbing
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    const loadedImages: HTMLImageElement[] = [];
 
-    const handleLoadedMetadata = () => {
-      setDuration(video.duration || 1);
-    };
+    for (let i = 0; i < TOTAL_FRAMES; i++) {
+      const img = new Image();
+      const num = i.toString().padStart(2, '0');
+      img.src = `/zoom_frames/zoom_${num}.jpg`;
+      loadedImages.push(img);
+    }
 
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    if (video.duration) setDuration(video.duration);
-
-    return () => {
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-    };
+    imagesRef.current = loadedImages;
   }, []);
 
-  // Smooth scroll scrubbing loop
+  // Render current frame to canvas based on scrollProgress
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !duration) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    // Calculate target frame timestamp in video (leave tiny margin at end)
-    const targetTime = Math.min(duration - 0.05, Math.max(0, scrollProgress * duration));
+    const frameIndex = Math.min(
+      TOTAL_FRAMES - 1,
+      Math.max(0, Math.floor(scrollProgress * TOTAL_FRAMES))
+    );
 
-    // Smoothly update video currentTime
-    try {
-      if (Math.abs(video.currentTime - targetTime) > 0.01) {
-        video.currentTime = targetTime;
+    const img = imagesRef.current[frameIndex];
+
+    const draw = () => {
+      const w = (canvas.width = window.innerWidth);
+      const h = (canvas.height = window.innerHeight);
+
+      if (img && img.complete && img.naturalWidth > 0) {
+        // Draw image covering screen (cover math)
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const screenRatio = w / h;
+
+        let renderW = w;
+        let renderH = h;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (screenRatio > imgRatio) {
+          renderH = w / imgRatio;
+          offsetY = (h - renderH) / 2;
+        } else {
+          renderW = h * imgRatio;
+          offsetX = (w - renderW) / 2;
+        }
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(img, offsetX, offsetY, renderW, renderH);
       }
-    } catch {
-      // Ignore seek interruptions
+    };
+
+    if (img && !img.complete) {
+      img.onload = draw;
+    } else {
+      draw();
     }
-  }, [scrollProgress, duration]);
+  }, [scrollProgress]);
 
   // UI & Title opacity fade out as scroll begins (first 30% of scroll)
   const textOpacity = Math.max(0, 1 - scrollProgress * 3.5);
   const textBlur = scrollProgress * 12;
   const uiOpacity = Math.max(0, 1 - scrollProgress * 2.8);
 
-  // Video fades out slightly at the very end (last 10%) to cleanly merge into the locked BitcoinManBackground
-  const videoOpacity = scrollProgress < 0.90 ? 1 : Math.max(0, 1 - (scrollProgress - 0.90) / 0.10);
+  // Hero canvas fades out at the very end (last 10% of scroll) to smoothly reveal the locked BitcoinManBackground
+  const canvasOpacity = scrollProgress < 0.90 ? 1 : Math.max(0, 1 - (scrollProgress - 0.90) / 0.10);
 
   return (
     <div className="relative w-full h-full min-h-screen flex flex-col justify-between overflow-hidden bg-[#040a17]">
-      {/* ─── SCROLL-SYNCED CONTINUOUS ZOOM VIDEO (`bg-zooomin.mp4`) ─── */}
+      {/* ─── SCROLL-LOCKED HIGH-PERFORMANCE 60FPS VIDEO ZOOM CANVAS ─── */}
       <div 
         className="absolute inset-0 w-full h-full pointer-events-none z-0 transition-opacity duration-75"
-        style={{ opacity: videoOpacity }}
+        style={{ opacity: canvasOpacity }}
       >
-        <video
-          ref={videoRef}
-          src="/bg-zooomin.mp4"
-          preload="auto"
-          muted
-          playsInline
-          className="w-full h-full object-cover brightness-[0.92] contrast-[1.05]"
+        <canvas
+          ref={canvasRef}
+          className="w-full h-full object-cover filter brightness-[0.92] contrast-[1.05]"
         />
         {/* Subtle Dreamcore Night Tint Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#040a17]/35 via-transparent to-[#040a17]/65 pointer-events-none" />

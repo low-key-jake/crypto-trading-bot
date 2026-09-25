@@ -51,13 +51,13 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Compute scroll camera progress (0 to 1 over the scroll-synced bg-zooomin.mp4 video zoom)
-  const heroZoomProgress = Math.min(1, Math.max(0, scrollY / 950));
+  // Compute scroll camera progress (0 to 1 over the 60fps frame-scrubbed video zoom)
+  const heroZoomProgress = Math.min(1, Math.max(0, scrollY / 1150));
   // Reveal the locked Bitcoin man background as video reaches maximum zoom
-  const secondBgOpacity = Math.min(1, Math.max(0, (scrollY - 550) / 400));
+  const secondBgOpacity = Math.min(1, Math.max(0, (scrollY - 750) / 400));
 
   // Slide-in effect for the "Should You Buy?" DecisionCard as user scrolls past the maximum zoom
-  const decisionSlideProgress = Math.min(1, Math.max(0, (scrollY - 750) / 350));
+  const decisionSlideProgress = Math.min(1, Math.max(0, (scrollY - 950) / 350));
   const decisionTransformX = (1 - decisionSlideProgress) * 120;
   const decisionOpacity = decisionSlideProgress;
 
@@ -117,7 +117,7 @@ export const App: React.FC = () => {
 
   const scrollToTerminal = () => {
     window.scrollTo({
-      top: 1100,
+      top: 1300,
       behavior: 'smooth'
     });
   };
@@ -139,8 +139,8 @@ export const App: React.FC = () => {
       {/* Locked Atmospheric Background for the rest of website (Bitcoin man with moving chart in sky & fireflies) */}
       <BitcoinManBackground opacity={secondBgOpacity} />
 
-      {/* 1. CINEMATIC PINNED CAMERA SEQUENCE (200vh scroll track for video zoom) */}
-      <div className="relative w-full h-[200vh]">
+      {/* 1. CINEMATIC PINNED CAMERA SEQUENCE (240vh scroll track for locked video zoom) */}
+      <div className="relative w-full h-[240vh]">
         <div 
           className="sticky top-0 w-full h-screen overflow-hidden z-20"
           style={{ pointerEvents: heroZoomProgress > 0.95 ? 'none' : 'auto' }}
