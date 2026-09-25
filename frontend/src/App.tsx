@@ -142,8 +142,7 @@ export const App: React.FC = () => {
       {/* 1. CINEMATIC PINNED CAMERA SEQUENCE (240vh scroll track for locked video zoom) */}
       <div className="relative w-full h-[240vh]">
         <div 
-          className="sticky top-0 w-full h-screen overflow-hidden z-20"
-          style={{ pointerEvents: heroZoomProgress > 0.95 ? 'none' : 'auto' }}
+          className={heroZoomProgress < 0.99 ? "fixed inset-0 w-full h-screen overflow-hidden z-20" : "absolute bottom-0 w-full h-screen overflow-hidden z-0 pointer-events-none opacity-0"}
         >
           <HeroSection 
             onScrollToTerminal={scrollToTerminal}

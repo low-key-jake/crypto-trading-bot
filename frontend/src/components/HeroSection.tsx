@@ -182,7 +182,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           data-cursor="Scroll Down"
           className="text-xs uppercase tracking-widest text-white/50 hover:text-white flex flex-col items-center gap-2 cursor-pointer transition-colors"
         >
-          <span>Scroll to Dive into Terminal</span>
+          <span>Scroll to Zoom into Terminal</span>
           <ArrowDown className="w-4 h-4 animate-bounce text-amber-200/70" />
         </button>
       </div>
