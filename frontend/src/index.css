@@ -57,9 +57,11 @@ body {
 
 /* Satosphere Dreamcore Celestial Title */
 .satosphere-title {
-  font-family: 'Cinzel Decorative', serif;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-family: 'Cinzel', 'Cinzel Decorative', serif;
+  font-weight: 800;
+  font-variant-ligatures: none !important;
+  font-feature-settings: "liga" 0, "clig" 0, "dlig" 0, "hlig" 0, "calt" 0 !important;
+  letter-spacing: 0.18em;
   background: linear-gradient(
     175deg,
     #ffffff 0%,

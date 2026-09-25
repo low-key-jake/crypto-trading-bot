@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowDown, Newspaper, LineChart } from 'lucide-react';
 
 interface HeroSectionProps {
   onScrollToTerminal: () => void;
   onOpenNews: () => void;
   onOpenLiveChart: () => void;
-  scrollProgress: number; // 0 to 1 — driven by scroll position
+  scrollProgress: number; // 0 to 1 — driven by page scroll position
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -14,131 +14,69 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onOpenLiveChart,
   scrollProgress
 }) => {
-  // Calculate opacities & scale transforms for the 5 frame milestones
-  // Frame 1: Wide shot (0.0 to 0.3)
-  const f1Opacity = scrollProgress < 0.25 ? 1 : Math.max(0, 1 - (scrollProgress - 0.25) / 0.15);
-  const f1Scale = 1 + scrollProgress * 0.5;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [duration, setDuration] = useState<number>(0);
 
-  // Frame 2: Over shoulder (0.15 to 0.55)
-  const f2Opacity = scrollProgress < 0.15 
-    ? 0 
-    : scrollProgress < 0.35 
-    ? (scrollProgress - 0.15) / 0.2 
-    : scrollProgress < 0.45 
-    ? 1 
-    : Math.max(0, 1 - (scrollProgress - 0.45) / 0.15);
-  const f2Scale = 1 + (scrollProgress - 0.15) * 0.6;
+  // Sync video.currentTime with user's scrollProgress (0 to 1)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
 
-  // Frame 3: Laptop screen bezel close up (0.35 to 0.75)
-  const f3Opacity = scrollProgress < 0.35 
-    ? 0 
-    : scrollProgress < 0.52 
-    ? (scrollProgress - 0.35) / 0.17 
-    : scrollProgress < 0.65 
-    ? 1 
-    : Math.max(0, 1 - (scrollProgress - 0.65) / 0.15);
-  const f3Scale = 1 + (scrollProgress - 0.35) * 0.7;
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration || 1);
+    };
 
-  // Frame 4: Screen displaying Bitcoin man inside bezel (0.55 to 0.92)
-  const f4Opacity = scrollProgress < 0.55 
-    ? 0 
-    : scrollProgress < 0.72 
-    ? (scrollProgress - 0.55) / 0.17 
-    : scrollProgress < 0.82 
-    ? 1 
-    : Math.max(0, 1 - (scrollProgress - 0.82) / 0.15);
-  const f4Scale = 1 + (scrollProgress - 0.55) * 0.8;
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    if (video.duration) setDuration(video.duration);
 
-  // Frame 5: Full Bitcoin man world expansion (0.75 to 1.0)
-  const f5Opacity = scrollProgress < 0.75 ? 0 : Math.min(1, (scrollProgress - 0.75) / 0.2);
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, []);
 
-  // Text & Navbar UI fade out in the first 30% of scroll
-  const textOpacity = Math.max(0, 1 - scrollProgress * 3.2);
-  const textBlur = scrollProgress * 10;
-  const uiOpacity = Math.max(0, 1 - scrollProgress * 2.5);
+  // Smooth scroll scrubbing loop
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !duration) return;
+
+    // Calculate target frame timestamp in video (leave tiny margin at end)
+    const targetTime = Math.min(duration - 0.05, Math.max(0, scrollProgress * duration));
+
+    // Smoothly update video currentTime
+    try {
+      if (Math.abs(video.currentTime - targetTime) > 0.01) {
+        video.currentTime = targetTime;
+      }
+    } catch {
+      // Ignore seek interruptions
+    }
+  }, [scrollProgress, duration]);
+
+  // UI & Title opacity fade out as scroll begins (first 30% of scroll)
+  const textOpacity = Math.max(0, 1 - scrollProgress * 3.5);
+  const textBlur = scrollProgress * 12;
+  const uiOpacity = Math.max(0, 1 - scrollProgress * 2.8);
+
+  // Video fades out slightly at the very end (last 10%) to cleanly merge into the locked BitcoinManBackground
+  const videoOpacity = scrollProgress < 0.90 ? 1 : Math.max(0, 1 - (scrollProgress - 0.90) / 0.10);
 
   return (
     <div className="relative w-full h-full min-h-screen flex flex-col justify-between overflow-hidden bg-[#040a17]">
-      {/* ─── 5-FRAME ZOOM STACK ─── */}
-      <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
-        {/* Frame 1: Wide Shot */}
-        <div
-          className="absolute inset-0 w-full h-full will-change-transform transition-opacity duration-75"
-          style={{
-            opacity: f1Opacity,
-            transform: `scale(${f1Scale})`,
-            transformOrigin: '50% 65%'
-          }}
-        >
-          <img
-            src="/frame1.png"
-            alt="Satosphere Dreamcore Field"
-            className="w-full h-full object-cover brightness-[0.9] contrast-[1.05]"
-          />
-        </div>
-
-        {/* Frame 2: Over Shoulder */}
-        <div
-          className="absolute inset-0 w-full h-full will-change-transform transition-opacity duration-75"
-          style={{
-            opacity: f2Opacity,
-            transform: `scale(${Math.max(1, f2Scale)})`,
-            transformOrigin: '50% 70%'
-          }}
-        >
-          <img
-            src="/frame2.png"
-            alt="Over Shoulder Zoom"
-            className="w-full h-full object-cover brightness-[0.92]"
-          />
-        </div>
-
-        {/* Frame 3: Laptop Screen Bezel Close-up */}
-        <div
-          className="absolute inset-0 w-full h-full will-change-transform transition-opacity duration-75"
-          style={{
-            opacity: f3Opacity,
-            transform: `scale(${Math.max(1, f3Scale)})`,
-            transformOrigin: '48% 68%'
-          }}
-        >
-          <img
-            src="/frame3.png"
-            alt="Laptop Bezel Zoom"
-            className="w-full h-full object-cover brightness-[0.95]"
-          />
-        </div>
-
-        {/* Frame 4: Displaying Bitcoin Man Inside Screen */}
-        <div
-          className="absolute inset-0 w-full h-full will-change-transform transition-opacity duration-75"
-          style={{
-            opacity: f4Opacity,
-            transform: `scale(${Math.max(1, f4Scale)})`,
-            transformOrigin: '50% 50%'
-          }}
-        >
-          <img
-            src="/frame4.png"
-            alt="Bitcoin Man Screen Display"
-            className="w-full h-full object-cover brightness-[0.98]"
-          />
-        </div>
-
-        {/* Frame 5: Full Bitcoin Man World Expansion */}
-        <div
-          className="absolute inset-0 w-full h-full will-change-transform transition-opacity duration-75"
-          style={{ opacity: f5Opacity }}
-        >
-          <img
-            src="/frame5.png"
-            alt="Satosphere Bitcoin World"
-            className="w-full h-full object-cover brightness-[0.95]"
-          />
-        </div>
-
-        {/* Ambient Dreamcore Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#040a17]/40 via-transparent to-[#040a17]/70 pointer-events-none" />
+      {/* ─── SCROLL-SYNCED CONTINUOUS ZOOM VIDEO (`bg-zooomin.mp4`) ─── */}
+      <div 
+        className="absolute inset-0 w-full h-full pointer-events-none z-0 transition-opacity duration-75"
+        style={{ opacity: videoOpacity }}
+      >
+        <video
+          ref={videoRef}
+          src="/bg-zooomin.mp4"
+          preload="auto"
+          muted
+          playsInline
+          className="w-full h-full object-cover brightness-[0.92] contrast-[1.05]"
+        />
+        {/* Subtle Dreamcore Night Tint Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#040a17]/35 via-transparent to-[#040a17]/65 pointer-events-none" />
       </div>
 
       {/* ─── Shooting Stars ─── */}

@@ -51,13 +51,13 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Compute scroll camera progress (0 to 1 over the 5-frame hero zoom)
-  const heroZoomProgress = Math.min(1, Math.max(0, scrollY / 850));
-  // Reveal the locked Bitcoin man background as camera dives into laptop screen
-  const secondBgOpacity = Math.min(1, Math.max(0, (scrollY - 450) / 400));
+  // Compute scroll camera progress (0 to 1 over the scroll-synced bg-zooomin.mp4 video zoom)
+  const heroZoomProgress = Math.min(1, Math.max(0, scrollY / 950));
+  // Reveal the locked Bitcoin man background as video reaches maximum zoom
+  const secondBgOpacity = Math.min(1, Math.max(0, (scrollY - 550) / 400));
 
-  // Slide-in effect for the "Should You Buy?" DecisionCard as user scrolls past laptop screen dive
-  const decisionSlideProgress = Math.min(1, Math.max(0, (scrollY - 650) / 350));
+  // Slide-in effect for the "Should You Buy?" DecisionCard as user scrolls past the maximum zoom
+  const decisionSlideProgress = Math.min(1, Math.max(0, (scrollY - 750) / 350));
   const decisionTransformX = (1 - decisionSlideProgress) * 120;
   const decisionOpacity = decisionSlideProgress;
 
@@ -117,7 +117,7 @@ export const App: React.FC = () => {
 
   const scrollToTerminal = () => {
     window.scrollTo({
-      top: 1000,
+      top: 1100,
       behavior: 'smooth'
     });
   };
@@ -139,8 +139,8 @@ export const App: React.FC = () => {
       {/* Locked Atmospheric Background for the rest of website (Bitcoin man with moving chart in sky & fireflies) */}
       <BitcoinManBackground opacity={secondBgOpacity} />
 
-      {/* 1. CINEMATIC PINNED CAMERA SEQUENCE (180vh scroll track for 5-frame zoom) */}
-      <div className="relative w-full h-[180vh]">
+      {/* 1. CINEMATIC PINNED CAMERA SEQUENCE (200vh scroll track for video zoom) */}
+      <div className="relative w-full h-[200vh]">
         <div 
           className="sticky top-0 w-full h-screen overflow-hidden z-20"
           style={{ pointerEvents: heroZoomProgress > 0.95 ? 'none' : 'auto' }}
